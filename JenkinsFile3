@@ -1,0 +1,54 @@
+pipeline {
+    agent any
+
+    environment {
+        APP_NAME = "containerized"
+        RELEASE = "1.0.0"
+        DOCKER_USER = "surya8899"
+        DOCKER_PASS = credentials('surya-dockerhub') // Use Jenkins credentials
+        IMAGE_NAME = "${DOCKER_USER}/${APP_NAME}"
+        IMAGE_TAG = "${RELEASE}-${BUILD_NUMBER}"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/vamsi676/DotNet01'
+            }
+        }
+
+        stage('Docker Build & Push') {
+            steps {
+                script {
+                    docker.withRegistry('', DOCKER_PASS) {
+                        def docker_image = docker.build("${IMAGE_NAME}")
+
+                        docker_image.push("${IMAGE_TAG}")
+                        docker_image.push('latest')
+                    }
+                }
+            }
+        }
+
+        stage('Run Container') {
+            steps {
+                script {
+                    def container_name = "webgoat"
+                    bat "docker run -d --name ${container_name} -it -p 9000:9000 ${IMAGE_NAME}:${IMAGE_TAG}"
+                }
+            }
+        }
+    }
+
+    /*
+    post {
+        always {
+            script {
+                def container_name = "webgoat"
+                bat "docker stop ${container_name} || exit 0"
+                bat "docker rm ${container_name} || exit 0"
+            }
+        }
+    }
+    */
+}
