@@ -1,0 +1,22 @@
+pipeline {
+    agent any
+    
+    environment {
+        DOCKER_PASS = credentials('dockerhub')
+        DOCKER_REGISTRY = 'https://index.docker.io/v1/'
+        DOCKER_USERNAME = 'surya8899'
+    }
+    
+    stages {
+        stage('Login to Docker Hub') {
+            steps {
+                script {
+                    docker.withRegistry(url: DOCKER_REGISTRY, credentialsId: 'dockerhub') {
+                        // You can perform any Docker-related actions here
+                        echo 'Logged in to Docker Hub successfully!'
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,34 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_IMAGE = 'appsecco/owasp-webgoat-dot-net'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // Checkout the source code from the repository
+                git branch: 'main', url: 'https://github.com/vamsi676/DotNet'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    // Build the Docker image
+                    bat 'docker build -t %DOCKER_IMAGE% .'
+                }
+            }
+        }
+
+        stage('Run Docker Container') {
+            steps {
+                script {
+                    // Run the Docker container
+                    bat 'docker run --name webgoat -it -p 9000:9000 -d %DOCKER_IMAGE%'
+                }
+            }
+        }
+    }
+}

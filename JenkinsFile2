@@ -1,0 +1,35 @@
+pipeline {
+    agent any
+
+    environment {
+        APP_NAME = "containerized"
+        RELEASE = "1.0.0"
+        DOCKER_USER = "surya8899"
+        DOCKER_PASS = 'surya-dockerhub'
+        IMAGE_NAME = "${DOCKER_USER}/${APP_NAME}"
+        IMAGE_TAG = "${RELEASE}-${BUILD_NUMBER}"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'master', url: 'https://github.com/vamsi676/MY_APP'
+            }
+        }
+
+        stage('Docker Build & Push') {
+            steps {
+                script {
+                    docker.withRegistry('',DOCKER_PASS) {
+                        docker_image = docker.build "${IMAGE_NAME}"
+                    }
+
+                    docker.withRegistry('',DOCKER_PASS) {
+                        docker_image.push("${IMAGE_TAG}")
+                        docker_image.push('latest')  
+                    }
+                }
+            }
+        }
+    }
+}
