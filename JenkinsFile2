@@ -13,7 +13,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'master', url: 'https://github.com/vamsi676/MY_APP'
+                git branch: 'main', url: 'https://github.com/vamsi676/DotNet01'
             }
         }
 
