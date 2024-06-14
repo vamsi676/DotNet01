@@ -8,6 +8,8 @@ pipeline {
         DOCKER_PASS = 'surya-dockerhub'
         IMAGE_NAME = "${DOCKER_USER}/${APP_NAME}"
         IMAGE_TAG = "${RELEASE}-${BUILD_NUMBER}"
+        SONARQUBE_URL = 'http://34.170.132.146:9000'
+        SONARQUBE_TOKEN = 'sqa_5e39d50cc36ef4b32d425ae981e8ac4e19651e7b'
     }
 
     stages {
@@ -17,7 +19,19 @@ pipeline {
             }
         }
 
-        stage('Docker Build & Push') {
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    withSonarQubeEnv('SonarQube') { // Assuming 'SonarQube' is the name of your SonarQube server configuration in Jenkins
+                        bat 'dotnet sonarscanner begin /k:"My-DotNet-Project" /d:sonar.login=${SONARQUBE_TOKEN} /d:sonar.host.url=${SONARQUBE_URL}'
+                        bat 'dotnet build'
+                        bat 'dotnet sonarscanner end /d:sonar.login=${SONARQUBE_TOKEN}'
+                    }
+                }
+            }
+        }
+
+        /*stage('Docker Build & Push') {
             steps {
                 script {
                     docker.withRegistry('', DOCKER_PASS) {
@@ -28,20 +42,19 @@ pipeline {
                     }
                 }
             }
-        }
+        }*/
 
-        stage('Run Container') {
+        /*stage('Run Container') {
             steps {
                 script {
                     def container_name = "webgoat"
                     bat "docker run -d --name ${container_name} -it -p 9000:9000 ${IMAGE_NAME}:${IMAGE_TAG}"
                 }
             }
-        }
+        }*/
     }
 
-    /*
-    post {
+    /*post {
         always {
             script {
                 def container_name = "webgoat"
@@ -49,6 +62,5 @@ pipeline {
                 bat "docker rm ${container_name} || exit 0"
             }
         }
-    }
-    */
+    }*/
 }
